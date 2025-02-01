@@ -26,10 +26,12 @@ app.post("/signup", async(req,res)=>{
 
     try{
         const insertQuery = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id;'
-        const response = await pgClient.query(insertQuery,[username, password, email])
-        console.log(response)
         const addressInsertQuery = 'INSERT INTO addresses (city, country, street, pincode, user_id) VALUES ($1, $2, $3, $4, $5);'
+
+        await pgClient.query("BEGIN;")
+        const response = await pgClient.query(insertQuery,[username, password, email])
         const addressResponse = await pgClient.query(addressInsertQuery,[city, country, street, pincode, response.rows[0].id]) 
+        await pgClient.query("COMMIT;")
         res.json({
             message: "You have sign up"
         })
